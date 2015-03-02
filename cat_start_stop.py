@@ -1,4 +1,61 @@
 #!/usr/bin/python
+
+DOCUMENTATION = '''
+module: cat_start_stop
+short_description: Start and stop EC2 instances with an automation tag
+description:
+  - Start and stop EC2 instances with an automation tag
+  - See U(https://cloudar.atlassian.net/wiki/display/AKT/Schedule+starting+and+stopping+instances)
+version_added: null
+author: Ben Bridts
+notes:
+  - Remember that all times are UTC
+  - This module is trigger based, not state based, you should set the grace period in function of the interval between runs.
+requirements:
+  - the boto-python package
+options:
+  aws_secret_key:
+    description:
+      - AWS secret key. If not set then the value of the AWS_SECRET_KEY environment variable is used.
+    required: false
+    default: null
+    aliases: [ 'ec2_secret_key', 'secret_key' ]
+    version_added: "1.5"
+  aws_access_key:
+    description:
+      - AWS access key. If not set then the value of the AWS_ACCESS_KEY environment variable is used.
+    required: false
+    default: null
+    aliases: [ 'ec2_access_key', 'access_key' ]
+    version_added: "1.5"
+  region:
+    description:
+      - The AWS region to use. If not specified then the value of the EC2_REGION environment variable, if any, is used.
+    required: false
+    aliases: ['aws_region', 'ec2_region']
+    version_added: "1.5"
+  tag:
+    description:
+      - The tag where the automation JSON is stored
+    required: false
+    default: CAT
+  grace:
+    description:
+      - The maximum number of minutes after the defined time that the action should still be triggered.
+    required: false
+    default: 10
+'''
+
+EXAMPLES = '''
+# Note: None of these examples set aws_access_key, aws_secret_key, or region.
+# It is assumed that their matching environment variables are set.
+
+# Basic example
+- cat_start_stop:
+    tag: CAT
+    grace: 10
+'''
+
 from datetime import datetime, timedelta
 
 try:
