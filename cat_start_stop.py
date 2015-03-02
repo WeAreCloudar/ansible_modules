@@ -1,6 +1,5 @@
 #!/usr/bin/python
 from datetime import datetime, timedelta
-import json
 
 try:
     import boto.ec2
