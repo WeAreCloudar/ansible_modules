@@ -79,7 +79,7 @@ def main():
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
     automation_tag = module.params.get('tag', AUTOMATION_TAG)
-    grace_minutes = module.params.get('grace_minutes', GRACE_MINUTES)
+    grace_minutes = module.params.get('grace', GRACE_MINUTES)
 
     # Get all the times of the actions we should trigger
     now = datetime.utcnow()
