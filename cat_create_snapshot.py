@@ -99,7 +99,7 @@ def main():
         }
 
         generated_tag = {'prune': True, 'type': 'default', 'map': {'i': instance_id, 'd': device, 'v': volume_id}}
-        if not module.check_mode:
+        if module.check_mode:
             snapshot_id = None
         else:
             snapshot = conn.create_snapshot(volume_id, description=description)
