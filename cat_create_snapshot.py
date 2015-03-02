@@ -112,7 +112,7 @@ def main():
         changed = True
         created_snapshots.append({'snapshot_id': snapshot_id, 'description': description, 'tag': generated_tag})
 
-    module.exit_json(changed=changed, created=created_snapshots)
+    module.exit_json(changed=changed, snapshots=created_snapshots)
 
 
 from ansible.module_utils.basic import *
