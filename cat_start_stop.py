@@ -126,15 +126,16 @@ def main():
             if instance.state != 'stopped':
                 changed = True
                 stop_ids.append(instance.id)
-        if not module.check_mode:
-            conn.stop_instances(stop_ids)
     if start_instances:  # not empty
         for instance in start_instances:
             if instance.state != 'running':
                 changed = True
                 start_ids.append(instance.id)
-        if not module.check_mode:
-            conn.start_instances(start_ids)
+
+    if stop_ids and not module.check_mode:
+        conn.stop_instances(stop_ids)
+    if start_ids and not module.check_mode:
+        conn.start_instances(start_ids)
 
     module.exit_json(changed=changed, started=start_ids, stopped=stop_ids)
 
