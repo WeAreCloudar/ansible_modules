@@ -80,6 +80,10 @@ def main():
 
     automation_tag = module.params.get('tag', AUTOMATION_TAG)
     grace_minutes = module.params.get('grace', GRACE_MINUTES)
+    if grace_minutes.isdigit():
+        grace_minutes = int(grace_minutes)
+    else:
+        module.fail_json(msg='"grace" should be an integer value')
 
     # Get all the times of the actions we should trigger
     now = datetime.utcnow()
