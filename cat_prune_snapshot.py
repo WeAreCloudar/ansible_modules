@@ -186,6 +186,7 @@ def main():
                         reason = 'delete, because the next one is newer'
                     else:
                         keep = True
+                        reason = 'keep, best fit for keep_time %s' % current_keep_time.isoformat()
                 else:
                     # Need more backups, but this is the last one
                     keep = True
@@ -194,10 +195,11 @@ def main():
                 if keep:  # We found a snapshot for the current keep time
                     kept_snapshots.append({
                         'snapshot_id': snapshot.id,
+                        'snapshot_time': snapshot.start_datetime.isoformat(),
                         'volume_id': volume_id,
                         'instance_id': instance.id,
                         'reason': reason,
-                        'keep_time': current_keep_time
+                        'keep_time': current_keep_time.isoformat()
                     })
                     try:
                         # Try getting the next keep time
@@ -209,6 +211,7 @@ def main():
                 elif not snapshot.prune:
                     kept_snapshots.append({
                         'snapshot_id': snapshot.id,
+                        'snapshot_time': snapshot.start_datetime.isoformat(),
                         'volume_id': volume_id,
                         'instance_id': instance.id,
                         'original_reason': reason,
@@ -217,6 +220,7 @@ def main():
                 elif snapshot.start_datetime > now - timedelta(days=1):
                     kept_snapshots.append({
                         'snapshot_id': snapshot.id,
+                        'snapshot_time': snapshot.start_datetime.isoformat(),
                         'volume_id': volume_id,
                         'instance_id': instance.id,
                         'original_reason': reason,
@@ -225,6 +229,7 @@ def main():
                 else:  # kept is false and no special case
                     pruned_snapshots.append({
                         'snapshot_id': snapshot.id,
+                        'snapshot_time': snapshot.start_datetime.isoformat(),
                         'volume_id': volume_id,
                         'instance_id': instance.id,
                         'reason': reason,
