@@ -160,7 +160,7 @@ def main():
             'inst': instance_id, 'vol': volume_id, 'date': datetime.utcnow().isoformat()
         }
 
-        generated_tag = {'prune': True, 'type': 'default', 'map': {'i': instance_id, 'd': device, 'v': volume_id}}
+        generated_tag = {'prune': True, 'map': {'i': instance_id, 'd': device, 'v': volume_id}}
         if module.check_mode:
             snapshot_id = None
         else:
