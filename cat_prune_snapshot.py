@@ -133,33 +133,35 @@ def main():
             continue
 
         # Get all the times there should be a snapshot
-        keep_snapshot_from = []
+        keep_times = []
         try:
             for i in range(1, int(retention['d'])):
-                keep_snapshot_from.append(now - timedelta(days=1 * i))
+                keep_times.append(now - timedelta(days=1 * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['w'])):
-                keep_snapshot_from.append(now - timedelta(days=DAYS_IN_WEEK * i))
+                keep_times.append(now - timedelta(days=DAYS_IN_WEEK * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['m'])):
-                keep_snapshot_from.append(now - timedelta(days=DAYS_IN_MONTH * i))
+                keep_times.append(now - timedelta(days=DAYS_IN_MONTH * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['y'])):
-                keep_snapshot_from.append(now - timedelta(days=DAYS_IN_YEAR * i))
+                keep_times.append(now - timedelta(days=DAYS_IN_YEAR * i))
         except KeyError:
             pass
 
-        # Sort the times (newest first)
-        keep_snapshot_from.sort(reverse=True)
+        # Sort the times. We sort from newest to oldest, because we're going to use it as a stack
+        keep_times.sort(reverse=True)
 
         for dev, mapping_type in instance.block_device_mapping.items():
             reason = ''
+            # Copy the keep times, so we can use it as stack (and pop the oldest time)
+            keep_times_stack = keep_times[:]
             volume_id = mapping_type.volume_id
             try:
                 snapshots = grouped_snapshots[volume_id]
@@ -171,7 +173,7 @@ def main():
 
             finished_keep_times = False
             try:
-                current_keep_time = keep_snapshot_from.pop()
+                current_keep_time = keep_times_stack.pop()
             except IndexError:
                 finished_keep_times = True
 
@@ -209,7 +211,7 @@ def main():
                     })
                     try:
                         # Try getting the next keep time
-                        current_keep_time = keep_snapshot_from.pop()
+                        current_keep_time = keep_times_stack.pop()
                     except IndexError:
                         # No more times, so we're finished (delete all snapshots we haven't processed yet)
                         finished_keep_times = True
