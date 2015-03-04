@@ -93,12 +93,8 @@ def main():
     else:
         module.fail_json(msg='"grace" should be an integer value')
 
-    # Get all the times of the actions we should trigger
+    # Get the current time
     now = datetime.utcnow()
-    times = []
-    for minute in range(0, grace_minutes):
-        action_time = now - timedelta(minutes=minute)
-        times.append(action_time)
 
     # Get all the instances and snapshots with an automation tag
     conn = ec2_connect(module)
@@ -132,6 +128,18 @@ def main():
             # no retention policy, Move on to next instance
             continue
 
+        '''
+        What this does:
+
+        - We make a list of all the times we need a snapshot for and another list of all the snapshots we have.
+        - For every time we need:
+            - If there are no older snapshots, keep the oldest available snapshot
+            - If there are older snapshots, keep the newest
+        - Older times get to choose the best fitting snapshot first. And every snapshot can be used only once. When
+          there aren't enough snapshots yet, younger times will not have a corresponding snapshot yet, even if there is
+          an exact match (bit it will be kept either way, because it is the best fit for an older snapshot)
+        '''
+
         # Get all the times there should be a snapshot
         keep_times = []
         try:
@@ -158,20 +166,25 @@ def main():
         # Sort the times. We sort from newest to oldest, because we're going to use it as a stack
         keep_times.sort(reverse=True)
 
+        # Repeat for every volume of the instance
         for dev, mapping_type in instance.block_device_mapping.items():
-            reason = ''
             # Copy the keep times, so we can use it as stack (and pop the oldest time)
             keep_times_stack = keep_times[:]
+            # Reset finished indicator
+            finished_keep_times = False
+
+            # Find snapshots for this volume
             volume_id = mapping_type.volume_id
             try:
                 snapshots = grouped_snapshots[volume_id]
             except KeyError:
                 # no snapshots for volume
                 continue
+
             # Sort the snapshots (oldest first)
             snapshots.sort(key=lambda x: x.start_time, reverse=False)
 
-            finished_keep_times = False
+            # Get the oldest keep_time
             try:
                 current_keep_time = keep_times_stack.pop()
             except IndexError:
@@ -179,23 +192,30 @@ def main():
 
             snapshot_amount = len(snapshots)
 
+            # Loop through the snapshots, from old to new.
             for i, snapshot in enumerate(snapshots):
                 if finished_keep_times:
-                    # not the newest one, and we don't need any more backups kept
+                    # We don't need to keep any more backups
                     keep = False
                     reason = 'delete, we have all the snapshots we need'
                 elif i < snapshot_amount - 1:
-                    # not the last snapshot (= newest)
+                    # We still need a snapshot and there are at least two left
                     newer_snapshot = snapshots[i + 1]
 
-                    if snapshot.start_datetime < current_keep_time and newer_snapshot.start_datetime < current_keep_time:
-                        # There is a newer snapshot that fits better with the retention time
-                        keep = False
-                        reason = 'delete, because the next one is newer'
-                    else:
+                    if snapshot.start_datetime >= current_keep_time:
+                        # Current snapshot is newer then keep time. Always keep.
+                        keep = True
+                        reason = 'keep, younger than keep_time %s and no older snapshot left' % current_keep_time.isoformat()
+                    elif newer_snapshot.start_datetime >= current_keep_time:
+                        # Next snapshot is newer than keep time. This one is the most recent, but older than keep time
                         keep = True
                         reason = 'keep, best fit for keep_time %s' % current_keep_time.isoformat()
-                else:
+                    else:
+                        # The next snapshot should be a better fit
+                        keep = False
+                        reason = 'delete, because the next one is newer'
+
+                else:  # i >= snapshot_amount - 1
                     # Need more backups, but this is the last one
                     keep = True
                     reason = 'keep, it is the last one, and we need more snapshots'
