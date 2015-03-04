@@ -63,8 +63,14 @@ except ImportError:
     print "failed=True msg='boto required for this module'"
     sys.exit(1)
 
+# Default values
 AUTOMATION_TAG = 'CAT'
 GRACE_MINUTES = 10
+
+# Constants
+DAYS_IN_YEAR = 365.25
+DAYS_IN_WEEK = 7
+DAYS_IN_MONTH = DAYS_IN_YEAR / 12
 
 
 def main():
@@ -135,17 +141,17 @@ def main():
             pass
         try:
             for i in range(1, int(retention['w'])):
-                keep_snapshot_from.append(now - timedelta(days=7 * i))
+                keep_snapshot_from.append(now - timedelta(days=DAYS_IN_WEEK * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['m'])):
-                keep_snapshot_from.append(now - timedelta(days=30 * i))
+                keep_snapshot_from.append(now - timedelta(days=DAYS_IN_MONTH * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['y'])):
-                keep_snapshot_from.append(now - timedelta(days=365 * i))
+                keep_snapshot_from.append(now - timedelta(days=DAYS_IN_YEAR * i))
         except KeyError:
             pass
 
