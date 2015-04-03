@@ -11,6 +11,21 @@ Some things to consider:
 - Dates and times are always interpreted as UTC
 - JSON dictionaries can be combined. See the full example:
 
+Installation
+------------
+Add this folder to your library path. You can do this as an [environment variable](http://docs.ansible.com/developing_modules.html#module-paths), or in an Ansible config file.
+The config file can be an `ansible.cfg` file in the same directory as the playbook, or the global `/etc/ansible.cfg` 
+
+### Environment variable
+    ANSIBLE_LIBRARY=/path/to/modules
+    
+### Ansible.cfg
+    # config file for ansible -- http://ansible.com/
+    # ==============================================
+    
+    [defaults]
+    # Use our own modules
+    library = /path/to/modules
 
 Create snapshot
 ---------------
