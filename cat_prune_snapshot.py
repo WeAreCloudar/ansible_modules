@@ -50,9 +50,8 @@ EXAMPLES = '''
 # It is assumed that their matching environment variables are set.
 
 # Basic example
-- cat_start_stop:
+- cat_prune_snapshot:
     tag: CAT
-    grace: 10
 '''
 
 from datetime import datetime, timedelta
@@ -65,7 +64,6 @@ except ImportError:
 
 # Default values
 AUTOMATION_TAG = 'CAT'
-GRACE_MINUTES = 10
 
 # Constants
 DAYS_IN_YEAR = 365.25
@@ -83,15 +81,9 @@ def main():
     argument_spec = ec2_argument_spec()
     argument_spec.update(dict(
         tag=dict(required=False, default=AUTOMATION_TAG),
-        grace=dict(required=False, default=GRACE_MINUTES, )
     ))
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
     automation_tag = module.params.get('tag', AUTOMATION_TAG)
-    grace_minutes = module.params.get('grace', GRACE_MINUTES)
-    if grace_minutes.isdigit():
-        grace_minutes = int(grace_minutes)
-    else:
-        module.fail_json(msg='"grace" should be an integer value')
 
     # Get the current time
     now = datetime.utcnow()
