@@ -3,7 +3,7 @@ Cloudar Automation Tag (CAT) Modules
 These Ansible modules provide a flexible way to manage EC2 instances in AWS. By adding a JSON dictionary in a tag,
 instances can be started and stopped, snapshots can be created and old snapshots can be deleted.
 
-A full explanation of why we build this can be found on [the Cloudar blog]() 
+A full explanation of why we build this can be found on [the Cloudar blog](http://www.cloudar.be/awsblog/instance-and-snapshot-management-with-ansible) 
 
 Some things to consider:
 
