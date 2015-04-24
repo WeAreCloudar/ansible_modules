@@ -101,27 +101,45 @@ def main():
 
     start_instances = []
     stop_instances = []
+    skipped_instances = []
     for instance in instances:
+        skipped = None
+
         # Get the automation tag (should exists, because we filtered)
         automation = json.loads(instance.tags[automation_tag])
 
-        for days, trigger_time in automation['on'].items():
-            for action_time in times:
-                if str(action_time.weekday() + 1) not in days:
-                    pass
-                elif '%(h)02d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
-                    start_instances.append(instance)
-                elif '%(h)d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
-                    start_instances.append(instance)
-        for days, trigger_time in automation['off'].items():
-            for action_time in times:
-                if str(action_time.weekday() + 1) not in days:
-                    pass
-                elif '%(h)02d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
-                    if instance.state != 'stopped':
+        try:
+            for days, trigger_time in automation['on'].items():
+                for action_time in times:
+                    if str(action_time.weekday() + 1) not in days:
+                        skipped = {'id': instance.id, 'reason': 'No on trigger for this day'}
+                    elif '%(h)02d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
+                        start_instances.append(instance)
+                        skipped = False
+                    elif '%(h)d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
+                        start_instances.append(instance)
+                        skipped = False
+        except KeyError:
+            skipped = {'id': instance.id, 'reason': 'No on key'}
+
+        try:
+            for days, trigger_time in automation['off'].items():
+                for action_time in times:
+                    if str(action_time.weekday() + 1) not in days:
+                        if skipped is None:
+                            skipped = {'id': instance.id, 'reason': 'No off trigger for this day'}
+                    elif '%(h)02d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
+                        if instance.state != 'stopped':
+                            stop_instances.append(instance)
+                            skipped = False
+                    elif '%(h)d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
                         stop_instances.append(instance)
-                elif '%(h)d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
-                    stop_instances.append(instance)
+                        skipped = False
+        except KeyError:
+            skipped = {'id': instance.id, 'reason': 'No off key'}
+
+        if skipped:
+            skipped_instances.append(skipped)
 
     stop_ids = []
     start_ids = []
@@ -141,7 +159,7 @@ def main():
     if start_ids and not module.check_mode:
         conn.start_instances(start_ids)
 
-    module.exit_json(changed=changed, started=start_ids, stopped=stop_ids)
+    module.exit_json(changed=changed, started=start_ids, stopped=stop_ids, skipped_instances=skipped_instances)
 
 
 from ansible.module_utils.basic import *

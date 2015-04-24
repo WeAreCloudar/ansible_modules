@@ -102,6 +102,7 @@ def main():
     }
     instances = conn.get_only_instances(filters=filters)
     snapshots = conn.get_all_snapshots(filters=filters)
+    skipped_instances = []
 
     # We use the description to check if a snapshot exists. Make a list for easy access
     snapshot_descriptions = map(lambda x: x.description, snapshots)
@@ -114,6 +115,8 @@ def main():
         try:
             snapshot_times = automation['sn']
         except KeyError as e:
+            skipped_instances.append({ 'id': instance.id, 'reason': 'no sn key'})
+            # Go to the next iteration
             continue
 
         if not isinstance(snapshot_times, list):
@@ -135,6 +138,7 @@ def main():
                 break  # Exit times loop
 
         if not make_snapshot:
+            skipped_instances.append({ 'id': instance.id, 'reason': 'not the right time'})
             continue  # Try again with the next instance
 
         for dev, mapping_type in instance.block_device_mapping.items():
@@ -174,7 +178,7 @@ def main():
         changed = True
         created_snapshots.append({'snapshot_id': snapshot_id, 'description': description, 'tag': generated_tag})
 
-    module.exit_json(changed=changed, snapshots=created_snapshots)
+    module.exit_json(changed=changed, snapshots=created_snapshots, skipped_instances=skipped_instances)
 
 
 from ansible.module_utils.basic import *
