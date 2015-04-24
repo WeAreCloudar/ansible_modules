@@ -76,6 +76,7 @@ def main():
     changed = False
     pruned_snapshots = []
     kept_snapshots = []
+    skipped_instances = []
 
     # Input
     argument_spec = ec2_argument_spec()
@@ -118,6 +119,7 @@ def main():
             retention = instance.automation['ret']
         except KeyError:
             # no retention policy, Move on to next instance
+            skipped_instances.append({'instance_id': instance.id, 'reason': 'no ret key'})
             continue
 
         '''
@@ -257,7 +259,7 @@ def main():
                     if not module.check_mode:  # Keep == false, but in check mode
                         conn.delete_snapshot(snapshot.id)
 
-    module.exit_json(changed=changed, pruned=pruned_snapshots, kept=kept_snapshots)
+    module.exit_json(changed=changed, pruned=pruned_snapshots, kept=kept_snapshots, skipped_instances=skipped_instances)
 
 
 from ansible.module_utils.basic import *
