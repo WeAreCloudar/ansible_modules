@@ -119,7 +119,7 @@ def main():
             retention = instance.automation['ret']
         except KeyError:
             # no retention policy, Move on to next instance
-            skipped_instances.append({'id': instance.id, 'reason': 'no ret key'})
+            skipped_instances.append({'instance_id': instance.id, 'reason': 'no ret key'})
             continue
 
         '''

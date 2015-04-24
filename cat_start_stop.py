@@ -112,7 +112,7 @@ def main():
             for days, trigger_time in automation['on'].items():
                 for action_time in times:
                     if str(action_time.weekday() + 1) not in days:
-                        skipped = {'id': instance.id, 'reason': 'No on trigger for this day'}
+                        skipped = {'instance_id': instance.id, 'reason': 'No on trigger for this day'}
                     elif '%(h)02d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
                         start_instances.append(instance)
                         skipped = False
@@ -120,14 +120,14 @@ def main():
                         start_instances.append(instance)
                         skipped = False
         except KeyError:
-            skipped = {'id': instance.id, 'reason': 'No on key'}
+            skipped = {'instance_id': instance.id, 'reason': 'No on key'}
 
         try:
             for days, trigger_time in automation['off'].items():
                 for action_time in times:
                     if str(action_time.weekday() + 1) not in days:
                         if skipped is None:
-                            skipped = {'id': instance.id, 'reason': 'No off trigger for this day'}
+                            skipped = {'instance_id': instance.id, 'reason': 'No off trigger for this day'}
                     elif '%(h)02d%(m)02d' % {'h': action_time.hour, 'm': action_time.minute} == trigger_time:
                         if instance.state != 'stopped':
                             stop_instances.append(instance)
@@ -136,7 +136,7 @@ def main():
                         stop_instances.append(instance)
                         skipped = False
         except KeyError:
-            skipped = {'id': instance.id, 'reason': 'No off key'}
+            skipped = {'instance_id': instance.id, 'reason': 'No off key'}
 
         if skipped:
             skipped_instances.append(skipped)

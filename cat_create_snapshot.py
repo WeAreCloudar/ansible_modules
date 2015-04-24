@@ -115,7 +115,7 @@ def main():
         try:
             snapshot_times = automation['sn']
         except KeyError as e:
-            skipped_instances.append({ 'id': instance.id, 'reason': 'no sn key'})
+            skipped_instances.append({ 'instance_id': instance.id, 'reason': 'no sn key'})
             # Go to the next iteration
             continue
 
@@ -138,7 +138,7 @@ def main():
                 break  # Exit times loop
 
         if not make_snapshot:
-            skipped_instances.append({ 'id': instance.id, 'reason': 'not the right time'})
+            skipped_instances.append({ 'instance_id': instance.id, 'reason': 'not the right time'})
             continue  # Try again with the next instance
 
         for dev, mapping_type in instance.block_device_mapping.items():
