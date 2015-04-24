@@ -100,7 +100,7 @@ def main():
     # Group snapshots per instances and add more attributes from the automation tag
     grouped_snapshots = {}
     for snapshot in all_snapshots:
-        snapshot.automation = json.loads(snapshot.tags[AUTOMATION_TAG])
+        snapshot.automation = json.loads(snapshot.tags[automation_tag])
         try:
             snapshot.prune = snapshot.automation['prune']
         except KeyError:
@@ -114,7 +114,7 @@ def main():
 
     # Loop over all instances
     for instance in all_instances:
-        instance.automation = json.loads(instance.tags[AUTOMATION_TAG])
+        instance.automation = json.loads(instance.tags[automation_tag])
         try:
             retention = instance.automation['ret']
         except KeyError:
