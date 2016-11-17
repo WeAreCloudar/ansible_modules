@@ -56,7 +56,7 @@ EXAMPLES = '''
     grace: 10
 '''
 
-from datetime import datetime, timedelta
+import datetime
 
 try:
     import boto.ec2
@@ -89,10 +89,10 @@ def main():
 
 
     # Get all the times of the actions we should trigger
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
     times = []
     for minute in range(0, grace_minutes):
-        action_time = now - timedelta(minutes=minute)
+        action_time = now - datetime.timedelta(minutes=minute)
         times.append(action_time)
 
     # Get all the snapshots and instances with an automation tag
@@ -161,7 +161,7 @@ def main():
             continue
 
         snapshot_name = '%(inst)s-%(vol)s-%(date)s' % {
-            'inst': instance_id, 'vol': volume_id, 'date': datetime.utcnow().isoformat()
+            'inst': instance_id, 'vol': volume_id, 'date': datetime.datetime.utcnow().isoformat()
         }
 
         generated_tag = {'prune': True, 'map': {'i': instance_id, 'd': device, 'v': volume_id}}
