@@ -54,7 +54,7 @@ EXAMPLES = '''
     tag: CAT
 '''
 
-from datetime import datetime, timedelta
+import datetime
 
 try:
     import boto.ec2
@@ -87,7 +87,7 @@ def main():
     automation_tag = module.params.get('tag', AUTOMATION_TAG)
 
     # Get the current time
-    now = datetime.utcnow()
+    now = datetime.datetime.utcnow()
 
     # Get all the instances and snapshots with an automation tag
     conn = ec2_connect(module)
@@ -105,7 +105,7 @@ def main():
             snapshot.prune = snapshot.automation['prune']
         except KeyError:
             snapshot.prune = False
-        snapshot.start_datetime = datetime.strptime(snapshot.start_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+        snapshot.start_datetime = datetime.datetime.strptime(snapshot.start_time, '%Y-%m-%dT%H:%M:%S.%fZ')
 
         try:
             grouped_snapshots[snapshot.volume_id].append(snapshot)
@@ -138,22 +138,22 @@ def main():
         keep_times = []
         try:
             for i in range(1, int(retention['d'])):
-                keep_times.append(now - timedelta(days=1 * i))
+                keep_times.append(now - datetime.timedelta(days=1 * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['w'])):
-                keep_times.append(now - timedelta(days=DAYS_IN_WEEK * i))
+                keep_times.append(now - datetime.timedelta(days=DAYS_IN_WEEK * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['m'])):
-                keep_times.append(now - timedelta(days=DAYS_IN_MONTH * i))
+                keep_times.append(now - datetime.timedelta(days=DAYS_IN_MONTH * i))
         except KeyError:
             pass
         try:
             for i in range(1, int(retention['y'])):
-                keep_times.append(now - timedelta(days=DAYS_IN_YEAR * i))
+                keep_times.append(now - datetime.timedelta(days=DAYS_IN_YEAR * i))
         except KeyError:
             pass
 
@@ -239,7 +239,7 @@ def main():
                         'original_reason': reason,
                         'reason': 'keep, prune not enabled',
                     })
-                elif snapshot.start_datetime > now - timedelta(days=1):
+                elif snapshot.start_datetime > now - datetime.timedelta(days=1):
                     kept_snapshots.append({
                         'snapshot_id': snapshot.id,
                         'snapshot_time': snapshot.start_datetime.isoformat(),
